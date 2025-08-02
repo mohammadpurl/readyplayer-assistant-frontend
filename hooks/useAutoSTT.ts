@@ -136,7 +136,8 @@ export function useAutoSTT(
     }
 
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      (window as typeof window & { SpeechRecognition?: new () => SpeechRecognition }).SpeechRecognition ||
+      (window as typeof window & { webkitSpeechRecognition?: new () => SpeechRecognition }).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       console.warn("SpeechRecognition API not supported");
@@ -161,7 +162,7 @@ export function useAutoSTT(
       console.log("[STT] Ended");
     };
 
-    recognition.onerror = (e) => {
+    recognition.onerror = (e: Event) => {
       console.warn("[STT] Error:", e);
       isActiveRef.current = false;
     };
@@ -218,8 +219,9 @@ export function useAutoSTT(
       try {
         recognitionRef.current.start();
         console.log("[STT] Started after VAD trigger");
-      } catch (e: any) {
-        if (e.name === "InvalidStateError" || e.message?.includes("recognition has already started")) {
+      } catch (e: unknown) {
+        const error = e as Error;
+        if (error.name === "InvalidStateError" || error.message?.includes("recognition has already started")) {
           // Ignore
         } else {
           console.warn("[STT] Start error:", e);
