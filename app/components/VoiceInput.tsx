@@ -14,19 +14,18 @@ function normalizeText(text: string): string {
 
 
 export const VoiceInput = () => {
-    const { chat, isProcessing, isAvatarTalking } = useChatContext();
+    const { chat, isProcessing, isAvatarTalking, isSessionActive } = useChatContext();
   
-    // console.log("VoiceInput: isProcessing:", isProcessing, "isAvatarTalking:", isAvatarTalking);
+    console.log("VoiceInput: isProcessing:", isProcessing, "isAvatarTalking:", isAvatarTalking, "isSessionActive:", isSessionActive);
   
     useAutoSTT(
-      !isProcessing && !isAvatarTalking, // فقط وقتی نه در حال پردازش هستیم و نه آواتار صحبت می‌کند
+      isSessionActive && !isProcessing && !isAvatarTalking, // فقط وقتی session فعال است و نه در حال پردازش هستیم و نه آواتار صحبت می‌کند
       (text) => {
-        debugger;
-        if (isProcessing || isAvatarTalking) {
-          console.log("VoiceInput: Ignored transcript - processing or avatar talking");
+        if (!isSessionActive || isProcessing || isAvatarTalking) {
+          console.log("VoiceInput: Ignored transcript - session not active, processing, or avatar talking");
           return;
         }
-  
+        debugger;
         const normalizedText = normalizeText(text);
         if (normalizedText.length < 3) {
           console.log("[STT] Ignored short message:", normalizedText);

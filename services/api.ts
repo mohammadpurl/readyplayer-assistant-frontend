@@ -1,7 +1,33 @@
 import { Message, TicketInfo } from "@/types/type";
 
+export async function introduction () {
+  try{
+    if (!process.env.NEXT_PUBLIC_API_URL) {
+      throw new Error("NEXT_PUBLIC_API_URL environment variable is not configured. Please set it in your .env.local file.");
+    }
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/aiassistant/intro`,
+      {
+        method: "GET",
+        
+      },
+    );
 
-export async function sendUserMessage(message: string) {
+    if (!response.ok) {
+      throw new Error("Failed to get response from backend");
+    }
+    const data = await response.json();
+    return data;
+    
+  }
+  catch(error){
+    console.error("Error asking question:", error);
+    throw error;
+  }
+
+}
+
+export async function sendUserMessage(message: string, session_id: string) {
   try {
     
     console.log(
@@ -18,7 +44,7 @@ export async function sendUserMessage(message: string) {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({message}), // فقط آرایه
+        body: JSON.stringify({message, session_id}), // فقط آرایه
       },
     );
 

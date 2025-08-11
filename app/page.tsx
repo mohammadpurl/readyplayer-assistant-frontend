@@ -7,6 +7,7 @@ import { ChatProvider } from "@/hooks/useChat";
 import { Leva } from "leva";
 import { Loader } from "@react-three/drei";
 import { MessageHistory } from "./components/MessageHistory";
+import { ColorTest } from "./components/ColorTest";
 
 export default function Home() {
   return (
@@ -24,7 +25,9 @@ export default function Home() {
        
 
         </div>
-        <MessageHistory />
+        
+        {/* Uncomment the line below to test colors */}
+        {/* <ColorTest /> */}
       </ChatProvider>
     </main>
   );

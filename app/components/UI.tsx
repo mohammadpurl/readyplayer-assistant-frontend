@@ -3,6 +3,8 @@ import { useChatContext } from "@/hooks/useChat";
 import { useRef, useState, useEffect } from "react";
 import { VoiceInput } from "./VoiceInput";
 import { MessageHistory } from "./MessageHistory";
+import { QRCodeSVG } from "qrcode.react";
+import { introduction } from "@/services/api";
 
 
 interface UIProps {
@@ -11,7 +13,19 @@ interface UIProps {
 
 export const UI = ({ hidden, ...props }: UIProps) => {
   const input = useRef<HTMLInputElement>(null);
-  const { chat, loading, cameraZoomed, setCameraZoomed } = useChatContext();
+  const { 
+    chat, 
+    loading, 
+    cameraZoomed, 
+    setCameraZoomed, 
+    isSessionActive, 
+    startSession, 
+    getIntroduction,
+    endSession,
+    showQRCode,
+    tripId,
+    
+  } = useChatContext();
   const [audioEnabled, setAudioEnabled] = useState(false);
 
   // فعال کردن صدا در اولین کلیک کاربر
@@ -33,11 +47,16 @@ export const UI = ({ hidden, ...props }: UIProps) => {
 
   const sendMessage = () => {
     const text = input.current?.value;
-    if (!loading && text) {
+    if (!loading && text && isSessionActive) {
       chat(text);
       if (input.current) input.current.value = "";
+    } else if (!isSessionActive) {
+      alert("Please start a session first!");
     }
   };
+
+  
+
 
   if (hidden) {
     return null;
@@ -53,6 +72,71 @@ export const UI = ({ hidden, ...props }: UIProps) => {
             <div className="text-sm text-gray-600 mt-2">
               Click anywhere to enable audio
             </div>
+          )}
+          
+          {/* Session Management Buttons */}
+          <div className="mt-4 flex gap-2">
+            {!isSessionActive ? (
+              <button
+              onClick={async () => {
+                await startSession();
+                await getIntroduction(); // دوباره اجرا می‌شود
+              }}
+                className="pointer-events-auto bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+              >
+                🎤 Start Voice Session
+              </button>
+            ) : (
+              <button
+                onClick={endSession}
+                className="pointer-events-auto bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+              >
+                ⏹️ End Session
+              </button>
+            )}
+          </div>
+          {showQRCode && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 26,
+                    left: 16,
+                    background: "white",
+                    borderRadius: 8,
+                    padding: 12,
+                    zIndex: 30,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    minWidth: 120,
+                    minHeight: 120,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <h2 style={{ fontSize: 14, marginBottom: 8 }}>
+                    برای مشاهده و ویرایش بلیط، QR را اسکن کنید:
+                  </h2>
+                  <QRCodeSVG
+                    value={`${window.location.origin}/ticket/${tripId}`}
+                    size={96}
+                  />
+                  <a
+                    href={`/ticket/${tripId}`}
+                    style={{ fontSize: 12, marginTop: 8 }}
+                    className="text-black"
+                  >
+                    اینجا کلیک کنید
+                  </a>
+                </div>
+              )}
+          
+          {isSessionActive && (
+            <>
+            <div className="text-sm text-green-600 mt-2 font-medium">
+              🟢 Session Active - Speak now!
+            </div>
+            <MessageHistory />
+            </>
           )}
         </div>
         <div className="w-full flex flex-col items-end justify-center gap-4">
